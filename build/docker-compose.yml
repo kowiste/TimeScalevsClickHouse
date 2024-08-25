@@ -1,0 +1,35 @@
+name: timescaleClickHouse
+services:
+  timescaledb:
+    image: timescale/timescaledb-ha:pg16
+    container_name: timescaledb
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: measure
+    networks:
+      - web
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - timescale_data:/var/lib/postgresql/data
+
+  clickhouse-server:
+    image: clickhouse/clickhouse-server:24.7.4.51-alpine
+    container_name: clickhouse-server
+    ports:
+      - "8123:8123"  # HTTP interface
+      - "9000:9000"  # Native TCP interface
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    environment:
+      - CLICKHOUSE_DB=measures
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=test
+
+volumes:
+  timescale_data:
+  clickhouse_data:
+networks:
+  web:
+    external: true
